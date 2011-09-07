@@ -1,0 +1,136 @@
+<html>
+	<head>
+		<script type="text/javascript" src="library.js"></script>
+	</head>
+	<body>
+<script>
+var ACCOUNT_LOCAL_STORAGE_KEY = "google-account-switcher";
+var maxNumberOfAccounts = 5;
+//=======================================================
+//listener for content scripts
+//=======================================================
+chrome.extension.onRequest.addListener(
+	function(request, sender, sendResponse) {
+		log("request action : " + request.action);
+		switch(request.action) {
+			case "getAccounts" :
+				sendResponse(getAccountsFromStorage());
+				break;
+			case "onTabLogin" :
+				sendResponse(onTabLogin(sender.tab.id));
+				break;
+			case "onTabLogout" :
+				sendResponse(onTabLogout(sender.tab.id));
+				break;
+			case "setUsernameToSignIn" :
+				sendResponse(setUsernameToSignInToStorage(request.username));
+				break;
+			case "getUsernameToSignIn" :
+				sendResponse(getUsernameToSignInFromStorage());
+				break;
+			case "getPasswordFor" :
+				sendResponse(getPasswordFor(request.account));
+				break;
+			case "getAdSenseAutoSignInValue" :
+				sendResponse(getAdSenseAutoSignInValue());
+				break;
+		}
+	}
+);
+//=======================================================
+//direct access to the storage
+//=======================================================	
+function getAccountsFromStorage() {
+	log("getting the list of account from the local store");
+	var accounts = new Array();
+	var i = 0;
+	for (; i <maxNumberOfAccounts; i++) {
+		var account = getItem("account" + i);
+		if(account != null) {
+			accounts.push(account);
+		}
+	}
+	return accounts;
+}
+function getUsernameToSignInFromStorage() {
+	log("get username to sign in from the local store");
+	var account = getItem("usernameToSignIn");
+	removeItem("usernameToSignIn");
+	return account;
+}
+function setUsernameToSignInToStorage(username) {
+	log("set username to sign in from the local store : " + username);
+	setItem("usernameToSignIn", username);
+}
+
+function getPasswordFor(username) {
+	var password = getItem(username);
+	if(password == null || password == "" || password == "undefined") {
+		return null;
+	}
+	return AesCtr.decrypt(password, username, 256);
+}
+
+function getAdSenseAutoSignInValue() {
+	var adSenseAutoSignIn = getItem("adSenseAutoLoginEnable");
+	if (adSenseAutoSignIn == "true") {
+		adSenseAutoSignIn = true;
+	} else {
+		adSenseAutoSignIn = false;
+	}
+	var number = getItem("adSenseAutoLoginAccountNumber");
+	if(number == null){
+		adSenseAutoSignIn = false;
+	}
+	var username = getItem("account" + (number - 1));
+	return {autoSingIn:adSenseAutoSignIn, account:username , password: getPasswordFor(username)};
+}
+
+
+function getItem(key) { return getStorage().getItem(key); }
+function setItem(key, map) { return getStorage().setItem(key, map); }
+function removeItem(key) { return getStorage().removeItem(key); }
+function getStorage() { return window.localStorage; }
+//=======================================================
+//google ajax request
+//=======================================================	
+var ACCOUNT_LOGGED_IN_STATUS = false;
+
+function onTabLogin(tabId) {
+	log("updateTabs onTabLogin with id " + tabId);
+	if(ACCOUNT_LOGGED_IN_STATUS == false) {
+		setTimeout("sendBroadcast(" + tabId + ")", 2000);
+		ACCOUNT_LOGGED_IN_STATUS = true;
+	}
+	return;
+}
+function onTabLogout(tabId) {
+	log("updateTabs onTabLogout with id " + tabId);
+	if(ACCOUNT_LOGGED_IN_STATUS) {
+		setTimeout("sendBroadcast(" + tabId + ")", 2000);
+		ACCOUNT_LOGGED_IN_STATUS = false;
+	}
+	return;
+}
+function sendBroadcast(tabId) {
+	log("sendBroadcast");
+	chrome.tabs.getAllInWindow(null, function(tabs) {
+	   	for (var i = 0; i < tabs.length; i++) {
+	   		console.log("checking i = " + i + " : " + tabs[i].id);
+	   		if(tabId != tabs[i].id) {
+	   			chrome.tabs.sendRequest(tabs[i].id, {tabid: tabs[i].id}, function(response) {
+		    		console.log("message sent to " + tabs[i].id);
+		  		});
+	   		}
+	    }
+	});
+}
+//======================================================================
+//log abstraction
+//======================================================================
+function log(msg) {
+	console.info(msg);
+}
+</script>
+</body>
+</html>

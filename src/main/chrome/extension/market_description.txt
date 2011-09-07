@@ -1,0 +1,9 @@
+Account Switcher for Google Gmail™ accounts is a simple Chrome Extension that makes your life easier especially if you are using more than one google account .It is very common to have more than one google account, maybe one for work, one personal... So if you are a little bit pissed off as me by how google handles multiple accounts and the new switcher you can try this extension.
+The extension is just storing on your browser the list of emails for you and then with a simple drop down you can switch between them.
+
+This is the updated version of the "Google Account Switcher extension". The old extension has been removed because of the policy change in the name of the extensions. 
+
+
+12503056-4
+
+http://account-switcher.appspot.com/

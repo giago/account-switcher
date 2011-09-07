@@ -1,0 +1,102 @@
+<html>
+	<head>
+		<script type="text/javascript" src="dao.js"></script>
+		<script>
+     var _gaq = _gaq || [];
+     _gaq.push(['_setAccount', 'UA-12503056-4']);
+     _gaq.push(['_trackEvent', 'Extension', 'Background', 'Loading background']);
+
+     (function() {
+       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+       ga.src = 'https://ssl.google-analytics.com/ga.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+     })();
+   		</script>
+	</head>
+	<body>
+<script>
+//=======================================================
+//listener for content scripts
+//=======================================================
+chrome.extension.onRequest.addListener(
+	function(request, sender, sendResponse) {
+		Logger.log("request action : " + request.action);
+		switch(request.action) {
+			case "onTabLogin" :
+				sendResponse(onTabLogin(sender.tab.id));
+				break;
+			case "onTabLogout" :
+				sendResponse(onTabLogout(sender.tab.id));
+				break;
+			case "getAccounts" :
+				sendResponse(Service.getAccounts());
+				break;
+			case "setAccountToSignIn" :
+				sendResponse(Service.setAccountToSignIn(request.account));
+				break;
+			case "getAccountToSignIn" :
+				sendResponse(Service.getAccountToSignIn());
+				break;
+			case "getCurrentAccount" :
+				sendResponse(Service.getCurrentAccount());
+				break;
+			case "setCurrentAccount" :
+				sendResponse(Service.setCurrentAccount(request.account));
+				break;
+			case "removeAccountToSignIn" :
+				sendResponse(Service.removeAccountToSignIn());
+				break;
+		}
+	}
+);
+
+//=======================================================
+//google ajax request
+//=======================================================	
+var ACCOUNT_LOGGED_IN_STATUS = false;
+var TIMEOUT = 2000;
+
+function onTabLogin(tabId) {
+	Logger.log("updateTabs onTabLogin with id " + tabId);
+	if(ACCOUNT_LOGGED_IN_STATUS == false) {
+		setTimeout("sendBroadcast(" + tabId + ")", TIMEOUT);
+		ACCOUNT_LOGGED_IN_STATUS = true;
+	}
+	return;
+}
+function onTabLogout(tabId) {
+	Logger.log("updateTabs onTabLogout with id " + tabId);
+	if(ACCOUNT_LOGGED_IN_STATUS) {
+		setTimeout("sendBroadcast(" + tabId + ")", TIMEOUT);
+		ACCOUNT_LOGGED_IN_STATUS = false;
+	}
+	return;
+}
+function sendBroadcast(tabId) {
+	Logger.log("sendBroadcast");
+	chrome.tabs.getAllInWindow(null, function(tabs) {
+	   	for (var i = 0; i < tabs.length; i++) {
+	   		Logger.log("checking i = " + i + " : " + tabs[i].id);
+	   		if(tabId != tabs[i].id) {
+	   			chrome.tabs.sendRequest(tabs[i].id, {tabid: tabs[i].id}, function(response) {
+	   				Logger.log("message sent to " + tabs[i].id);
+		  		});
+	   		}
+	    }
+	});
+}
+//======================================================================
+//log abstraction
+//======================================================================
+var Logger = {};
+
+Logger.log = function(msg) {
+	console.info(msg);
+}
+
+Logger.logError = function(msg) {
+	console.error(msg);
+}
+</script>
+</body>
+</html>

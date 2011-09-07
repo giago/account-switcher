@@ -1,0 +1,18 @@
+{
+	"name": "Account Switcher for Google Gmail™ accounts",
+  	"version": "1.0.1",
+  	"description": "Account Switcher for Google Gmail™ accounts is a simple Extension that makes your life easier if you have more than one account",
+  	"icons": { 
+		"32": "logo32.png",
+		"48": "logo48.png", 
+		"logo": "logo48.png"
+	},
+	"background_page": "background.html",
+  	"permissions": ["tabs", "https://www.google.com/", "http://www.google.com/"],
+  	"options_page": "option.html",
+  	"content_scripts": [{
+  		"run_at" : "document_end",
+		"matches": ["https://*/*", "http://*/*"],
+		"js": ["contentscript.js"]
+  	}]
+}

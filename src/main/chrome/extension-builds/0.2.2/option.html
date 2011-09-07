@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<style>
+			h1 { font:small Georgia Serif; font-size:x-large; color:#C60;}
+			h2 { font:x-small Georgia Serif; font-size:large; color:#C60;}
+			.body { width:100%; }
+			.content { width:100%; }
+			.option { width:100%; }
+			.account { background-color:#EDEDED; border:#CCC solid 1px; }
+			.username {  float:left;}
+			.password {  float:left;}
+			.submit {  float:left;}
+			.cancel {  float:left;}
+		</style>
+		<title>Google Account Switcher Option Page</title>
+		<meta name="description" content="Google account switcher option page">
+		<meta name="keywords" content="Google,Account,Switcher,Option,Page">
+		<script type="text/javascript" src="library.js"></script>
+		<script type="text/javascript">
+			function getItem(key) { return getStorage().getItem(key); }
+			function setItem(key, value) { return getStorage().setItem(key, value); }
+			function removeItem(key) { return getStorage().removeItem(key); }
+			function getStorage() { return window.localStorage; }
+
+			function setAccount(i) {
+				var account = document.getElementById("account" +i).value;
+				var password = document.getElementById("password" +i).value;
+				setItem("account" + (i-1), account);
+
+				document.getElementById("adSenseAccount" +i).disabled = false;
+				document.getElementById("submit" + i).disabled = true;
+				document.getElementById("clear" +i).disabled = false;
+				
+				if(password == null || password == ""){
+					return;
+				}
+				setItem(account, AesCtr.encrypt(password, account, 256));
+			}
+
+			function loadAllSettings() {
+				loadAccount(1);
+				loadAccount(2);
+				loadAccount(3);
+				loadAccount(4);
+				loadAccount(5);
+				loadAdSense();
+			}
+
+			function loadAccount(i) {
+				var account = getItem("account" + (i-1));
+				if(account == null) {
+					return;
+				}	
+				document.getElementById("clear" +i).disabled = false;
+				document.getElementById("account" +i).value = account;
+				document.getElementById("adSenseAccount" +i).disabled = false;
+				var password = getItem(account);
+				if(password == null) {
+					return;
+				}
+				document.getElementById("password" +i).value = AesCtr.decrypt(password, account, 256);
+			}
+
+			function loadAdSense() {
+				var adSenseAutoLoginEnable = getItem("adSenseAutoLoginEnable");
+				if(adSenseAutoLoginEnable == null) {
+					adSenseAutoLoginEnable = false;
+				} else if(adSenseAutoLoginEnable == "false"){
+					adSenseAutoLoginEnable = false;
+				} else if(adSenseAutoLoginEnable == "true") {
+					adSenseAutoLoginEnable = true;
+				}
+				document.getElementById("adSenseAutoLoginEnable").checked = adSenseAutoLoginEnable;
+
+				var number = getItem("adSenseAutoLoginAccountNumber");
+				if(number == null || number == "") {
+					return;
+				}
+				document.getElementById("adSenseAccount" + number).checked = true;
+			}
+
+			function onAdSenseChange() {
+				var adSenseAutoLoginEnable = document.getElementById("adSenseAutoLoginEnable").checked;
+				setItem("adSenseAutoLoginEnable", adSenseAutoLoginEnable);
+			}
+
+			function onChange(i) {
+				var account = document.getElementById("account" +i).value;
+				if(account == null || account == "" || account == "undefined") {
+					document.getElementById("submit" + i).disabled = true;
+					document.getElementById("clear" + i).disabled = true;
+					document.getElementById("adSenseAccount" + i).disabled = true;
+					return;
+				}
+				document.getElementById("submit" + i).disabled = false;
+			}
+
+			function onAdSenseAccountChange(i) {
+				setItem("adSenseAutoLoginAccountNumber", i);
+			}
+
+			function clearAccount(i) {
+				var account = getItem("account" + (i-1));
+				removeItem(account);
+				removeItem("account" + (i-1));
+				document.getElementById("account" + i).value = null;
+				document.getElementById("password" + i).value = null;
+				onChange(i);
+			}
+		</script>
+	</head>
+	<body onload="loadAllSettings();">
+		<center>
+			<div class="header"></div>
+			<center>
+				<div class="body">
+					<div class="content">
+						<div class="title"><h1>Google Account Switcher option page</h1></div>
+						<div class="introduction">In this page you can change a few option of Google Account Switcher</div>
+						<div class="subtitle"><h2>Google Accounts</h2></div>
+						<div class="option">
+							<table class="account">
+								<tr>
+									<td class="username">
+										Username: <input id="account1" type="text" name="account1" onkeypress="onChange(1);"/>
+									</td>
+									<td class="password">
+										Password: <input id="password1" type="password" name="password1" value="" onkeypress="onChange(1);"/>
+									</td>
+									<td class="submit">
+										<input id="submit1" type="submit" name="" value="save" disabled onclick="setAccount(1);"/>
+									</td>
+									<td class="cancel">
+										<input id="clear1" type="submit" name="" value="clear" disabled onclick="clearAccount(1);"/>
+									</td>
+								</tr>
+							</table>
+							<table class="account">
+								<tr>
+									<td class="username">
+										Username: <input id="account2" type="text" name="account2" onkeypress="onChange(2);"/>
+									</td>
+									<td class="password">
+										Password: <input id="password2" type="password" name="password2" value="" onkeypress="onChange(2);"/>
+									</td>
+									<td class="submit">
+										<input id="submit2" type="submit" name="" value="save" disabled onclick="setAccount(2);"/>
+									</td>
+									<td class="cancel">
+										<input id="clear2" type="submit" name="" value="clear" disabled onclick="clearAccount(2);"/>
+									</td>
+								</tr>
+							</table>
+							<table class="account">
+								<tr>
+									<td class="username">
+										Username: <input id="account3" type="text" name="account3" onkeypress="onChange(3);"/>
+									</td>
+									<td class="password">
+										Password: <input id="password3" type="password" name="password" value="" onkeypress="onChange(3);"/>
+									</td>
+									<td class="submit">
+										<input id="submit3" type="submit" name="" value="save" disabled onclick="setAccount(3);"/>
+									</td>
+									<td class="cancel">
+										<input id="clear3" type="submit" name="" value="clear" disabled onclick="clearAccount(3);"/>
+									</td>
+								</tr>
+							</table>
+							<table class="account">
+								<tr>
+									<td class="username">
+										Username: <input id="account4" type="text" name="account4" onkeypress="onChange(4);"/>
+									</td>
+									<td class="password">
+										Password: <input id="password4" type="password" name="password" value="" onkeypress="onChange(4);"/>
+									</td>
+									<td class="submit">
+										<input id="submit4" type="submit" name="" value="save" disabled onclick="setAccount(4);"/>
+									</td>
+									<td class="cancel">
+										<input id="clear4" type="submit" name="" value="clear" disabled onclick="clearAccount(4);"/>
+									</td>
+								</tr>
+							</table>
+							<table class="account">
+								<tr>
+									<td class="username">
+										Username: <input id="account5" type="text" name="account5" onkeypress="onChange(5);"/>
+									</td>
+									<td class="password">
+										Password: <input id="password5" type="password" name="password" value="" onkeypress="onChange(5);"/>
+									</td>
+									<td class="submit">
+										<input id="submit5" type="submit" name="" value="save" disabled onclick="setAccount(5);"/>
+									</td>
+									<td class="cancel">
+										<input id="clear5" type="submit" name="" value="clear" disabled onclick="clearAccount(5);"/>
+									</td>
+								</tr>
+							</table>
+						</div>
+						<div class="subtitle"><h2>Google Adsense</h2></div>
+						<div class="option">
+							<table class="account">
+								<tr>
+									<td class="username">
+										Use auto sing in: <input id="adSenseAutoLoginEnable" type="checkbox" name="adSenseAutoLoginEnable" onClick="onAdSenseChange()"/>
+									</td>
+									<td class="username">
+										with account: 
+										1 <input id="adSenseAccount1" name="adSenseAccount" disabled type="radio" onClick="onAdSenseAccountChange(1)"/>
+										2 <input id="adSenseAccount2" name="adSenseAccount" disabled type="radio" onClick="onAdSenseAccountChange(2)"/>
+										3 <input id="adSenseAccount3" name="adSenseAccount" disabled type="radio" onClick="onAdSenseAccountChange(3)"/>
+										4 <input id="adSenseAccount4" name="adSenseAccount" disabled type="radio" onClick="onAdSenseAccountChange(4)"/>
+										5 <input id="adSenseAccount5" name="adSenseAccount" disabled type="radio" onClick="onAdSenseAccountChange(5)"/>
+									</td>
+								</tr>
+							</table>
+							<br></br>
+							For any help or question visit our <a href="http://account-switcher.appspot.com/">website</a>.
+						</div>
+					</div>
+				</div>
+			</center>
+			<div class="footer"></div>
+		</center>
+	</body>
+</html>
