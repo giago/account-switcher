@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<style>
+			h1 { font-size:x-large; color:white; margin-bottom:10px;}
+			h2 { font-size:large;}
+			body {margin:0px; border:0px; font-family: Verdana, arial, helvetica, sans-serif;}
+			.body {width:100%; margin:0px; border:0px;}
+			.content {width:100%;}
+			.option {width:100%;}
+			.username {float:left;}
+			.password {float:left;}
+			.bottomToolbar {width:560px; text-align:right;}
+			.saveBottomToolbar {width:660px; background-color:#E5ECF9; margin-top:20px; border-radius: 9px; border:1px solid #C5D7EF;}
+			.subtitle {width:660px; background-color:#E5ECF9; margin-top:20px; border-radius: 9px; border:1px solid #C5D7EF;}
+			.header {width:100%; background:#69AA35; border:0px; height:35px;}
+			.topToolbar {width:560px; }
+			.introduction {width:560px; align:justify;}
+			.cell {width:175px; height:40px; float:left; }
+			.cellSmall {width:100px; height:40px; float:left; }
+			.account {width:560px; clear; }
+		</style>
+		<title>Account Switcher for Google Option Page</title>
+		<meta name="description" content="Google account switcher option page">
+		<meta name="keywords" content="Google,Account,Switcher,Option,Page">
+		<script type="text/javascript" src="dao.js"></script>
+		<script type="text/javascript">
+			var numberOfAccounts = 0;
+
+			function addAccount() {
+				var container = getAccountsContainerElement();
+				var accountContainer = document.createElement("div");
+				accountContainer.setAttribute("class", "account");	
+				accountContainer.innerHTML = getAccountHtml({account:"", password:""}, numberOfAccounts);
+				container.appendChild(accountContainer);
+				numberOfAccounts++;
+			}
+
+			function removeAccount(i) {
+				Service.deleteAccount(i);
+				onChange();
+			}
+
+			function onChange() {
+				var container = getAccountsContainerElement();
+				container.innerHTML = "";
+				numberOfAccounts = 0;
+				loadAccounts();
+				//loadOtherOptions();
+			}
+
+			function save() {
+				for(var i = 0; i< numberOfAccounts; i++) {
+					var accountToSave = getAccountElement(i).value;
+					var passwordToSave = getPasswordElement(i).value;
+					var AdSenseAutoSignInToSave = false;
+					Service.setAccount({ number:i, account:accountToSave, password:passwordToSave, adSenseAutoSignIn:AdSenseAutoSignInToSave});
+				}
+				onChange();
+			}
+
+			//TODO browser options
+			function loadOtherOptions() {
+				var value = DomainDao.getPopUpActionEnabled();
+				getPopUpActionEnabled().checked = value;
+				if(value == "true" || value == true ) {
+					chrome.browserAction.setPopup({popup:"popup.html"});
+					chrome.browserAction.setIcon({popup:"logo32.gif" });
+				} else {
+					chrome.browserAction.setPopup({ popup: "" });
+					chrome.browserAction.setIcon({});
+				}
+			}
+
+			function loadAccounts() {
+				var accounts = Service.getAccounts();
+				var container = getAccountsContainerElement();
+				for(var i = 0; i < accounts.length; i++) {
+					var accountContainer = document.createElement("div");							
+					accountContainer.setAttribute("class", "account");		
+					var account = accounts[i];
+					accountContainer.innerHTML = getAccountHtml(account, i);
+					container.appendChild(accountContainer);
+					numberOfAccounts++;
+				}
+			}
+
+			function getAccountHtml(account, counter) {
+				var password = account.password;
+				if(!password) {
+					password = "";
+				}
+				return "<div class=\"cell\">" +
+						"<input id=\"account" + counter + "\" type=\"text\" value=\"" + account.account + "\" />" + 
+					"</div>" +
+					"<div class=\"cell\">" +
+						"<input id=\"password" + counter + "\" type=\"password\" value=\"" + password + "\" />" +
+					"</div>" +
+					"<div class=\"cellSmall\">" +
+							"<input id=\"clear\" type=\"submit\" value=\"Remove\" onClick=\"removeAccount(" + counter + ")\"/>" + 	
+						"</div>" + 
+					"<br>";
+			}
+
+			function getAccountsContainerElement() { return getElement("accountsContainer"); }
+			function getSubmitElement(number) { return getElement("submit" + number); }
+			function getClearElement(number) { return getElement("clear" + number); }
+			function getAccountElement(number) { return getElement("account" + number); }
+			function getPasswordElement(number) { return getElement("password" + number); }
+			function getElement(id) { return document.getElementById(id); }
+		</script>
+		<script>
+     var _gaq = _gaq || [];
+     _gaq.push(['_setAccount', 'UA-12503056-4']);
+     _gaq.push(['_trackEvent', 'Extension', 'Option', 'Editing Option']);
+
+     (function() {
+       var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+       ga.src = 'https://ssl.google-analytics.com/ga.js';
+       var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+     })();
+   		</script>
+	</head>
+	<body onload="onChange();">
+		<center>
+			<div class="header"><h1>Account Switcher for Google</h1></div>
+			<center>
+				<br>
+				<div class="body">
+					<div class="content">
+						<div class="introduction">
+							Please note that if the account is on gmail domain you can skip the @ part.							
+						</div>
+						<div class="subtitle"><h2>Google Accounts</h2></div>
+						<br>
+						<div class="option">
+							<div class="topToolbar">
+								<div class="cell">Username</div>
+								<div class="cell">Password</div>
+								<div class="cellSmall">Remove</div>
+							</div>
+							<br>
+							<div id="accountsContainer"></div>
+							<br>
+							<div class="bottomToolbar">
+								<input id="add" type="submit" name="" value="Add new account" onclick="addAccount();"/>
+							</div>
+							<div class="saveBottomToolbar">
+								<input id="submit" type="submit" name="" value="Save configuration" onclick="save();" style="margin:10px;"/>
+							</div>
+						</div>
+						<div class="option">
+							<h2>Help</h2> For any help or question visit our <a href="http://account-switcher.appspot.com/">website</a>.
+						</div>
+						<div class="option">
+							<h2>Note</h2> We DO NOT guarantee the security of the passwords.							
+						</div>
+					</div>
+				</div>
+			</center>
+			<div class="footer"></div>
+		</center>
+	</body>
+</html>
